@@ -1,11 +1,16 @@
 <!doctype html>
-<!doctype html>
 <html lang="en">
 
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>AIStation Monitor</title>
+    <!-- Favicons -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/fav/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/fav/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/fav/apple-touch-icon.png">
+    <link rel="manifest" href="/fav/site.webmanifest">
+    <link rel="shortcut icon" href="/fav/favicon.ico">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         :root {
@@ -196,26 +201,6 @@
             if (link) link.href = `http://${host}:3000`;
         });
     </script>
-</body>
-
-</html>
-
-<!-- <script>
-    async function fetchStats() {
-        try {
-            const res = await fetch('/api/stats');
-            const data = await res.json();
-            document.getElementById('gpu').textContent = JSON.stringify(data.nvidia ?? data.nvidia, null, 2);
-            document.getElementById('temps').textContent = JSON.stringify(data.temps ?? {}, null, 2);
-            document.getElementById('disk').textContent = JSON.stringify(data.disk ?? {}, null, 2);
-            document.getElementById('ollama').textContent = JSON.stringify(data.ollama ?? [], null, 2);
-        } catch (e) {
-            console.error(e);
-        }
-    }
-    fetchStats();
-    setInterval(fetchStats, 1000);
-</script> -->
 </body>
 
 </html>

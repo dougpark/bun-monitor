@@ -471,9 +471,23 @@ export default Bun.serve({
           : ext === "js"
             ? "application/javascript"
             : "text/plain";
-      
-      // Note: Static files usually don't need CORS, but it doesn't hurt if 
-      // your HTML is served from a different port
+      return await serveFile(path, mime);
+    }
+
+    // Serve favicons and manifest from /fav/
+    if (req.method === "GET" && url.pathname.startsWith("/fav/")) {
+      const path = `public${url.pathname}`;
+      const ext = path.split(".").pop() ?? "";
+      const mime =
+        ext === "png"
+          ? "image/png"
+          : ext === "ico"
+            ? "image/x-icon"
+            : ext === "webmanifest"
+              ? "application/manifest+json"
+              : ext === "svg"
+                ? "image/svg+xml"
+                : "text/plain";
       return await serveFile(path, mime);
     }
 

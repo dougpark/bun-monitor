@@ -2,6 +2,10 @@
   "name": "bun-monitor",
   "module": "index.ts",
   "type": "module",
+  "scripts": {
+    "dev": "bun run --watch index.ts",
+    "start": "bun run index.ts"
+  },
   "private": true,
   "devDependencies": {
     "@types/bun": "latest"

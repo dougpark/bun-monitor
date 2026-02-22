@@ -24,5 +24,3 @@ EXPOSE 4000
 # Add this to your Dockerfile to ensure logs are flushed immediately
 ENV BUN_CONFIG_NO_BUFFER=1
 
-# Run the server
-CMD ["bun", "run", "index.ts"]
