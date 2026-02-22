@@ -16,66 +16,73 @@
             width: 10px;
             height: 10px;
             border-radius: 9999px;
-            background: #94a3b8
+            background: #6b7280;
+            /* gray-500 */
         }
 
         .pulse.active {
-            background: #4ade80;
-            box-shadow: 0 0 8px rgba(74, 222, 128, 0.5)
+            background: #22ff22;
+            /* bright green */
+            box-shadow: 0 0 8px rgba(34, 255, 34, 0.7);
         }
 
         .card-accent {
-            border-color: rgba(251, 146, 60, 0.15);
+            border-color: rgba(156, 163, 175, 0.15);
+            /* gray-400 */
         }
 
         pre {
-            background: #0b1220;
-            color: #e6e6e6
+            background: #18181b;
+            /* zinc-900 */
+            color: #e6e6e6;
         }
 
         .dropdown-content.hidden {
-            display: none
+            display: none;
         }
     </style>
 </head>
 
-<body class="min-h-screen bg-slate-900 text-slate-100 antialiased">
+<body class="min-h-screen bg-neutral-900 text-neutral-100 antialiased">
     <div class="max-w-6xl mx-auto p-6">
-        <header class="flex items-end justify-between mb-8">
-            <div>
-                <div class="text-xs uppercase text-slate-400 tracking-wider">Neural Engine Telemetry</div>
-                <h1 class="text-4xl font-light mt-1">AI Station</h1>
-            </div>
+        <header class="mb-8">
+            <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+                <div>
+                    <div class="text-xs uppercase text-slate-400 tracking-wider">Neural Engine Telemetry</div>
+                    <h1 class="text-4xl font-light mt-1">AI Station</h1>
+                </div>
 
-            <div class="flex items-center gap-6">
-                <nav class="relative">
-                    <button id="dropbtn"
-                        class="px-3 py-2 bg-orange-600/10 text-orange-400 border border-orange-600/20 rounded-md font-semibold">Services
-                        ▾</button>
-                    <div id="dropdown"
-                        class="absolute right-0 mt-2 w-56 bg-slate-800 border border-slate-700 rounded-md shadow-lg hidden">
-                        <a id="ollama-link" class="block px-4 py-2 text-sm text-slate-100 hover:bg-slate-700"
-                            target="_blank" rel="noopener">Ollama WebUI</a>
-                        <div class="border-t border-slate-700 my-1"></div>
-                        <a class="block px-4 py-2 text-sm text-slate-100 hover:bg-slate-700" href="#">Home Dashboard</a>
-                        <div class="border-t border-slate-700 my-1"></div>
-                        <a class="block px-4 py-2 text-sm text-slate-100 hover:bg-slate-700" href="https://64zbit.com"
-                            target="_blank" rel="noopener">64Zbit Blog</a>
-                    </div>
-                </nav>
+                <div class="flex flex-col sm:flex-row sm:items-center gap-4">
+                    <!-- <nav class="relative">
+                        <button id="dropbtn"
+                            class="px-3 py-2 bg-orange-600/10 text-orange-400 border border-orange-600/20 rounded-md font-semibold">Services
+                            ▾</button>
+                        <div id="dropdown"
+                            class="absolute right-0 mt-2 w-56 bg-slate-800 border border-slate-700 rounded-md shadow-lg hidden">
+                            <a id="ollama-link" class="block px-4 py-2 text-sm text-slate-100 hover:bg-slate-700"
+                                target="_blank" rel="noopener">Ollama WebUI</a>
+                            <div class="border-t border-slate-700 my-1"></div>
+                            <a class="block px-4 py-2 text-sm text-slate-100 hover:bg-slate-700" href="#">Home
+                                Dashboard</a>
+                            <div class="border-t border-slate-700 my-1"></div>
+                            <a class="block px-4 py-2 text-sm text-slate-100 hover:bg-slate-700"
+                                href="https://64zbit.com" target="_blank" rel="noopener">64Zbit Blog</a>
+                        </div>
+                    </nav> -->
 
-                <div class="text-right">
-                    <div id="live-clock" class="font-mono text-orange-400 font-semibold">--</div>
-                    <div class="flex items-center gap-3 text-xs text-slate-400 mt-1">
-                        <span class="pulse" id="pulse-dot"></span>
-                        <span id="status-text">Telemetry: Offline</span>
+                    <div class="text-right">
+                        <div id="live-clock" class="font-mono text-orange-400 font-semibold">--</div>
+                        <div class="flex items-center gap-3 text-xs text-slate-400 mt-1">
+                            <span class="pulse" id="pulse-dot"></span>
+                            <span id="status-text">Telemetry: Offline</span>
+                        </div>
                     </div>
                 </div>
             </div>
         </header>
 
         <main class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <section class="bg-slate-800 rounded-lg p-5 card-accent border shadow-sm">
+            <section class="bg-neutral-800 rounded-lg p-5 card-accent border shadow-sm">
                 <h2 class="text-orange-400 text-lg font-medium mb-3">NVIDIA GPU</h2>
                 <div class="space-y-2 text-sm text-slate-200">
                     <div class="flex justify-between">
@@ -101,7 +108,7 @@
                 </div>
             </section>
 
-            <section class="bg-slate-800 rounded-lg p-5 card-accent border shadow-sm">
+            <section class="bg-neutral-800 rounded-lg p-5 card-accent border shadow-sm">
                 <h2 class="text-orange-400 text-lg font-medium mb-3">Thermals</h2>
                 <div class="space-y-3 text-sm text-slate-200">
                     <div class="flex justify-between items-center">
@@ -131,7 +138,7 @@
                 </div>
             </section>
 
-            <section class="bg-slate-800 rounded-lg p-5 card-accent border shadow-sm">
+            <section class="bg-neutral-800 rounded-lg p-5 card-accent border shadow-sm">
                 <h2 class="text-orange-400 text-lg font-medium mb-3">System Resources</h2>
                 <div class="space-y-2 text-sm text-slate-200">
                     <div class="flex justify-between">
@@ -161,7 +168,7 @@
                 </div>
             </section>
 
-            <section class="md:col-span-2 bg-slate-800 rounded-lg p-5 card-accent border shadow-sm">
+            <section class="md:col-span-2 bg-neutral-800 rounded-lg p-5 card-accent border shadow-sm">
                 <h2 class="text-orange-400 text-lg font-medium mb-3">Running Models (Ollama)</h2>
                 <div class="overflow-x-auto">
                     <table class="w-full text-sm text-slate-200 table-auto">

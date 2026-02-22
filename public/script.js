@@ -38,7 +38,7 @@ async function updateStats() {
         // Temps and warnings
         let anyDanger = false;
         if (data.temps) {
-            console.log('Temps data:', data.temps.cpu_temp);
+
 
             const cpu = Number((data.temps.cpu_temp || '0').replace(/[^\d.]/g, ''));
             const cpuEl = document.getElementById('cpu-temp');
@@ -100,10 +100,10 @@ async function updateStats() {
 
 document.addEventListener('DOMContentLoaded', () => {
     // dropdown
-    const btn = document.getElementById('dropbtn');
-    const dd = document.getElementById('dropdown');
-    btn.addEventListener('click', (e) => { e.stopPropagation(); dd.classList.toggle('hidden'); });
-    document.addEventListener('click', () => dd.classList.add('hidden'));
+    // const btn = document.getElementById('dropbtn');
+    // const dd = document.getElementById('dropdown');
+    // btn.addEventListener('click', (e) => { e.stopPropagation(); dd.classList.toggle('hidden'); });
+    // document.addEventListener('click', () => dd.classList.add('hidden'));
 
     updateStats();
     setInterval(updateStats, REFRESH_MS);
