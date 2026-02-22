@@ -1,0 +1,214 @@
+<!doctype html>
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>AIStation Monitor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --accent: #fb923c;
+        }
+
+        .pulse {
+            width: 10px;
+            height: 10px;
+            border-radius: 9999px;
+            background: #94a3b8
+        }
+
+        .pulse.active {
+            background: #4ade80;
+            box-shadow: 0 0 8px rgba(74, 222, 128, 0.5)
+        }
+
+        .card-accent {
+            border-color: rgba(251, 146, 60, 0.15);
+        }
+
+        pre {
+            background: #0b1220;
+            color: #e6e6e6
+        }
+
+        .dropdown-content.hidden {
+            display: none
+        }
+    </style>
+</head>
+
+<body class="min-h-screen bg-slate-900 text-slate-100 antialiased">
+    <div class="max-w-6xl mx-auto p-6">
+        <header class="flex items-end justify-between mb-8">
+            <div>
+                <div class="text-xs uppercase text-slate-400 tracking-wider">Neural Engine Telemetry</div>
+                <h1 class="text-4xl font-light mt-1">AI Station</h1>
+            </div>
+
+            <div class="flex items-center gap-6">
+                <nav class="relative">
+                    <button id="dropbtn"
+                        class="px-3 py-2 bg-orange-600/10 text-orange-400 border border-orange-600/20 rounded-md font-semibold">Services
+                        ▾</button>
+                    <div id="dropdown"
+                        class="absolute right-0 mt-2 w-56 bg-slate-800 border border-slate-700 rounded-md shadow-lg hidden">
+                        <a id="ollama-link" class="block px-4 py-2 text-sm text-slate-100 hover:bg-slate-700"
+                            target="_blank" rel="noopener">Ollama WebUI</a>
+                        <div class="border-t border-slate-700 my-1"></div>
+                        <a class="block px-4 py-2 text-sm text-slate-100 hover:bg-slate-700" href="#">Home Dashboard</a>
+                        <div class="border-t border-slate-700 my-1"></div>
+                        <a class="block px-4 py-2 text-sm text-slate-100 hover:bg-slate-700" href="https://64zbit.com"
+                            target="_blank" rel="noopener">64Zbit Blog</a>
+                    </div>
+                </nav>
+
+                <div class="text-right">
+                    <div id="live-clock" class="font-mono text-orange-400 font-semibold">--</div>
+                    <div class="flex items-center gap-3 text-xs text-slate-400 mt-1">
+                        <span class="pulse" id="pulse-dot"></span>
+                        <span id="status-text">Telemetry: Offline</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <section class="bg-slate-800 rounded-lg p-5 card-accent border shadow-sm">
+                <h2 class="text-orange-400 text-lg font-medium mb-3">NVIDIA GPU</h2>
+                <div class="space-y-2 text-sm text-slate-200">
+                    <div class="flex justify-between">
+                        <div class="text-slate-400">Utilization</div>
+                        <div id="gpu-util">—</div>
+                    </div>
+                    <div class="flex justify-between">
+                        <div class="text-slate-400">Temperature</div>
+                        <div id="gpu-temp">—</div>
+                    </div>
+                    <div class="flex justify-between">
+                        <div class="text-slate-400">Memory Used</div>
+                        <div id="gpu-mem">—</div>
+                    </div>
+                    <div class="flex justify-between">
+                        <div class="text-slate-400">Power Draw</div>
+                        <div id="gpu-power">—</div>
+                    </div>
+                    <div class="flex justify-between">
+                        <div class="text-slate-400">Fan Speed</div>
+                        <div id="gpu-fan">—</div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="bg-slate-800 rounded-lg p-5 card-accent border shadow-sm">
+                <h2 class="text-orange-400 text-lg font-medium mb-3">Thermals</h2>
+                <div class="space-y-3 text-sm text-slate-200">
+                    <div class="flex justify-between items-center">
+                        <div class="text-slate-400">CPU Temp <span class="ml-2 text-xs text-slate-400"
+                                id="cpuTemp-badge"></span></div>
+                        <div id="cpu-temp">—</div>
+                    </div>
+                    <div class="flex justify-between">
+                        <div class="text-slate-400">NVMe SSD</div>
+                        <div id="ssd-temp">—</div>
+                    </div>
+                    <div class="flex justify-between">
+                        <div class="text-slate-400">VRM MOS</div>
+                        <div id="vrm-temp">—</div>
+                    </div>
+                    <div class="flex justify-between">
+                        <div class="text-slate-400">AIO Pump</div>
+                        <div id="pump-speed">—</div>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <div class="text-slate-400">System Fans</div>
+                        <div class="flex items-center gap-2"><span id="fan-badge"
+                                class="text-xs px-2 py-1 rounded-md bg-slate-700 text-slate-300">—</span>
+                            <div id="sys-fan-1">—</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="bg-slate-800 rounded-lg p-5 card-accent border shadow-sm">
+                <h2 class="text-orange-400 text-lg font-medium mb-3">System Resources</h2>
+                <div class="space-y-2 text-sm text-slate-200">
+                    <div class="flex justify-between">
+                        <div class="text-slate-400">Memory Used</div>
+                        <div id="sys-mem">—</div>
+                    </div>
+                    <div class="flex justify-between">
+                        <div class="text-slate-400">Load Average</div>
+                        <div id="sys-load">—</div>
+                    </div>
+                </div>
+
+                <h3 class="text-orange-300 text-sm mt-4">Disk</h3>
+                <div class="space-y-2 text-sm text-slate-200 mt-2">
+                    <div class="flex justify-between">
+                        <div class="text-slate-400">Usage</div>
+                        <div id="disk-used">—</div>
+                    </div>
+                    <div class="flex justify-between">
+                        <div class="text-slate-400">Usage %</div>
+                        <div id="disk-percent">—</div>
+                    </div>
+                    <div class="flex justify-between">
+                        <div class="text-slate-400">Available</div>
+                        <div id="disk-avail">—</div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="md:col-span-2 bg-slate-800 rounded-lg p-5 card-accent border shadow-sm">
+                <h2 class="text-orange-400 text-lg font-medium mb-3">Running Models (Ollama)</h2>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-slate-200 table-auto">
+                        <thead>
+                            <tr class="text-slate-400 text-xs uppercase tracking-widest">
+                                <th class="text-left">Model</th>
+                                <th class="text-left">Size</th>
+                                <th class="text-left">Processor</th>
+                                <th class="text-left">Until</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ollama-body" class="divide-y divide-slate-700"></tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="/static/script.js"></script>
+    <script>
+        // Wire Ollama link to current host
+        document.addEventListener('DOMContentLoaded', () => {
+            const host = window.location.hostname;
+            const link = document.getElementById('ollama-link');
+            if (link) link.href = `http://${host}:3000`;
+        });
+    </script>
+</body>
+
+</html>
+
+<!-- <script>
+    async function fetchStats() {
+        try {
+            const res = await fetch('/api/stats');
+            const data = await res.json();
+            document.getElementById('gpu').textContent = JSON.stringify(data.nvidia ?? data.nvidia, null, 2);
+            document.getElementById('temps').textContent = JSON.stringify(data.temps ?? {}, null, 2);
+            document.getElementById('disk').textContent = JSON.stringify(data.disk ?? {}, null, 2);
+            document.getElementById('ollama').textContent = JSON.stringify(data.ollama ?? [], null, 2);
+        } catch (e) {
+            console.error(e);
+        }
+    }
+    fetchStats();
+    setInterval(fetchStats, 1000);
+</script> -->
+</body>
+
+</html>

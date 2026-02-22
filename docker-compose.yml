@@ -1,0 +1,41 @@
+
+
+services:
+  bun-monitor:
+    container_name: bun-monitor
+    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile
+    privileged: true  # Needed for `sensors` command to access hardware info
+
+    ports:
+      - "80:4000"
+    volumes:
+      # Map the hardware monitor classes from the host
+      - /sys:/sys:ro
+      - /dev:/dev:ro
+
+      - .:/app:rw
+      - /var/run/docker.sock:/var/run/docker.sock  # Allows app to run 'docker exec'
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+
+    # Use host networking to simplify hardware discovery (Optional but helpful)
+    # network_mode: "host"
+      
+    # GPU access: include both device_requests (for modern compose) and deploy-reservations
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+
+    # Note: `device_requests` removed for compatibility with some compose versions.
+    # GPU access is still hinted via `deploy.resources.reservations.devices` above.
+    environment:
+      - PORT=4000
+      - BUN_CONFIG_NO_BUFFER=1
+      - NODE_ENV=development
