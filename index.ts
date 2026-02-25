@@ -136,15 +136,15 @@ async function xrun_temp_info() {
     const obs = await si.get({
       cpuTemperature: 'main, cores, chipset',
       // 'baseboard' or 'chassis' sometimes contains fan data depending on the driver
-      chassis: 'assetTag' 
+      chassis: 'assetTag'
     });
 
     // For Fans and extra sensors, 'si.cpuTemperature()' usually 
     // populates 'main' and 'cores', but additional sensors 
     // are often found in the 'si.graphics()' or 'si.baseboard()' calls.
-    
+
     const cpu = await si.cpuTemperature();
-    
+
     // Note: 'systeminformation' doesn't always have a direct 1:1 'fan' method 
     // because Linux drivers vary so much. If 'sensors' worked for you before, 
     // we can still use it for the fans specifically while using SI for the temps.
@@ -161,12 +161,12 @@ async function xrun_temp_info() {
     const fanCheck = await $`sensors | grep -i 'fan'`.text();
 
     if (fanCheck) {
-      const matches = fanCheck.match(/\d+/g); 
+      const matches = fanCheck.match(/\d+/g);
       if (matches && matches.length > 0) data.sys_fan_1 = `${matches[0]} RPM`;
       if (matches && matches.length > 1) data.pump_speed = `${matches[1]} RPM`;
     }
 
-     // Best-effort using `sensors` output; fall back to N/A when not available
+    // Best-effort using `sensors` output; fall back to N/A when not available
     const out = runCommand(["sensors"]);
     // crude parsing: look for lines with 'CPU' or 'Package id' or 'temp1'
     const lines = out.split(/\r?\n/);
@@ -217,121 +217,121 @@ import { readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
 
 export interface SystemTempData {
-    cpu_temp: string;
-    ssd_temp: string;
-    vrm_temp: string;
-    pump_speed: string;
-    sys_fan_1: string;
+  cpu_temp: string;
+  ssd_temp: string;
+  vrm_temp: string;
+  pump_speed: string;
+  sys_fan_1: string;
 }
 
 export interface SystemTempError {
-    error: string;
+  error: string;
 }
 
 // This function replicates the behavior of the original Python `run_temp_info` using direct file reads from /sys/class/hwmon
 export async function run_temp_info(): Promise<SystemTempData | SystemTempError> {
-    const data: SystemTempData = {
-        cpu_temp: "N/A",
-        ssd_temp: "N/A",
-        vrm_temp: "N/A",
-        pump_speed: "0 RPM",
-        sys_fan_1: "0 RPM"
+  const data: SystemTempData = {
+    cpu_temp: "N/A",
+    ssd_temp: "N/A",
+    vrm_temp: "N/A",
+    pump_speed: "0 RPM",
+    sys_fan_1: "0 RPM"
+  };
+
+  try {
+    const hwmonPath = "/sys/class/hwmon";
+    const dirs = await readdir(hwmonPath);
+
+    // Structures to hold our parsed data (mirroring psutil's dictionaries)
+    const temps: Record<string, { label: string, current: number }[]> = {};
+    const fans: Record<string, { label: string, current: number }[]> = {};
+
+    // Helper to safely read a file and return a trimmed string
+    const safeRead = async (path: string): Promise<string | null> => {
+      try {
+        return (await readFile(path, "utf8")).trim();
+      } catch {
+        return null; // Some hwmon files throw errors if sensors are offline
+      }
     };
 
-    try {
-        const hwmonPath = "/sys/class/hwmon";
-        const dirs = await readdir(hwmonPath);
-        
-        // Structures to hold our parsed data (mirroring psutil's dictionaries)
-        const temps: Record<string, { label: string, current: number }[]> = {};
-        const fans: Record<string, { label: string, current: number }[]> = {};
+    // 1. Gather all data from /sys/class/hwmon/
+    for (const dir of dirs) {
+      if (!dir.startsWith("hwmon")) continue;
 
-        // Helper to safely read a file and return a trimmed string
-        const safeRead = async (path: string): Promise<string | null> => {
-            try {
-                return (await readFile(path, "utf8")).trim();
-            } catch {
-                return null; // Some hwmon files throw errors if sensors are offline
-            }
-        };
+      const dirPath = join(hwmonPath, dir);
+      const name = await safeRead(join(dirPath, "name"));
+      if (!name) continue;
 
-        // 1. Gather all data from /sys/class/hwmon/
-        for (const dir of dirs) {
-            if (!dir.startsWith("hwmon")) continue;
-            
-            const dirPath = join(hwmonPath, dir);
-            const name = await safeRead(join(dirPath, "name"));
-            if (!name) continue;
+      if (!temps[name]) temps[name] = [];
+      if (!fans[name]) fans[name] = [];
 
-            if (!temps[name]) temps[name] = [];
-            if (!fans[name]) fans[name] = [];
+      const files = await readdir(dirPath);
 
-            const files = await readdir(dirPath);
-
-            // Parse temperatures (input is in millidegrees Celsius, needs / 1000)
-            const tempFiles = files.filter(f => f.startsWith("temp") && f.endsWith("_input"));
-            for (const input of tempFiles) {
-                const prefix = input.split("_")[0];
-                const val = await safeRead(join(dirPath, input));
-                if (val !== null) {
-                    const current = parseInt(val, 10) / 1000;
-                    const label = ((await safeRead(join(dirPath, `${prefix}_label`))) ?? prefix) as string;
-                    temps[name].push({ label, current });
-                }
-            }
-
-            // Parse fans (input is directly in RPM)
-            const fanFiles = files.filter(f => f.startsWith("fan") && f.endsWith("_input"));
-            for (const input of fanFiles) {
-                const prefix = input.split("_")[0];
-                const val = await safeRead(join(dirPath, input));
-                if (val !== null) {
-                    const current = parseInt(val, 10);
-                    const label = ((await safeRead(join(dirPath, `${prefix}_label`))) ?? prefix) as string;
-                    fans[name].push({ label, current });
-                }
-            }
+      // Parse temperatures (input is in millidegrees Celsius, needs / 1000)
+      const tempFiles = files.filter(f => f.startsWith("temp") && f.endsWith("_input"));
+      for (const input of tempFiles) {
+        const prefix = input.split("_")[0];
+        const val = await safeRead(join(dirPath, input));
+        if (val !== null) {
+          const current = parseInt(val, 10) / 1000;
+          const label = ((await safeRead(join(dirPath, `${prefix}_label`))) ?? prefix) as string;
+          temps[name].push({ label, current });
         }
+      }
 
-        // 2. Map the data to your specific object exactly like the Python script
-        if (temps["k10temp"] && temps["k10temp"].length > 0) {
-            const entry = temps["k10temp"][0];
-            if (entry) {
-                data.cpu_temp = `${entry.current}°C`;
-            }
+      // Parse fans (input is directly in RPM)
+      const fanFiles = files.filter(f => f.startsWith("fan") && f.endsWith("_input"));
+      for (const input of fanFiles) {
+        const prefix = input.split("_")[0];
+        const val = await safeRead(join(dirPath, input));
+        if (val !== null) {
+          const current = parseInt(val, 10);
+          const label = ((await safeRead(join(dirPath, `${prefix}_label`))) ?? prefix) as string;
+          fans[name].push({ label, current });
         }
-        
-        if (temps["nvme"] && temps["nvme"].length > 0) {
-            const entry = temps["nvme"][0];
-            if (entry) {
-                data.ssd_temp = `${entry.current}°C`;
-            }
-        }
-
-        if (temps["nct6687"] && temps["nct6687"].length > 0) {
-            for (const entry of temps["nct6687"]) {
-                if (entry.label === 'VRM MOS') {
-                    data.vrm_temp = `${entry.current}°C`;
-                }
-            }
-        }
-
-        if (fans["nct6687"] && fans["nct6687"].length > 0) {
-            for (const entry of fans["nct6687"]) {
-                if (entry.label === 'Pump Fan') {
-                    data.pump_speed = `${entry.current} RPM`;
-                } else if (entry.label === 'System Fan #1') {
-                    const rpm = entry.current;
-                    data.sys_fan_1 = rpm > 0 ? `${rpm} RPM` : "0 RPM";
-                }
-            }
-        }
-
-        return data;
-
-    } catch (error: any) {
-        return { error: error.message || String(error) };
+      }
     }
+
+    // 2. Map the data to your specific object exactly like the Python script
+    if (temps["k10temp"] && temps["k10temp"].length > 0) {
+      const entry = temps["k10temp"][0];
+      if (entry) {
+        data.cpu_temp = `${entry.current}°C`;
+      }
+    }
+
+    if (temps["nvme"] && temps["nvme"].length > 0) {
+      const entry = temps["nvme"][0];
+      if (entry) {
+        data.ssd_temp = `${entry.current}°C`;
+      }
+    }
+
+    if (temps["nct6687"] && temps["nct6687"].length > 0) {
+      for (const entry of temps["nct6687"]) {
+        if (entry.label === 'VRM MOS') {
+          data.vrm_temp = `${entry.current}°C`;
+        }
+      }
+    }
+
+    if (fans["nct6687"] && fans["nct6687"].length > 0) {
+      for (const entry of fans["nct6687"]) {
+        if (entry.label === 'Pump Fan') {
+          data.pump_speed = `${entry.current} RPM`;
+        } else if (entry.label === 'System Fan #1') {
+          const rpm = entry.current;
+          data.sys_fan_1 = rpm > 0 ? `${rpm} RPM` : "0 RPM";
+        }
+      }
+    }
+
+    return data;
+
+  } catch (error: any) {
+    return { error: error.message || String(error) };
+  }
 }
 //=====
 
@@ -441,7 +441,7 @@ export default Bun.serve({
     // 3. Handle API Routes
     if (req.method === "GET" && url.pathname === "/api/stats") {
       // Note: Added 'await' because your hardware functions are now async
-      const stats = await get_combined_stats(); 
+      const stats = await get_combined_stats();
       return new Response(JSON.stringify(stats), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -455,42 +455,24 @@ export default Bun.serve({
     }
 
     // 4. Serve HTML and Static Files
-    if (
-      req.method === "GET" &&
-      (url.pathname === "/" || url.pathname === "/monitor.html")
-    ) {
-      return await serveFile("public/monitor.html", "text/html");
+    const path = url.pathname;
+
+    // 1. Specific Page Routes
+    if (req.method === "GET" && (path === "/" || path === "/index.html")) {
+      return new Response(Bun.file("public/index.html"));
     }
 
-    if (req.method === "GET" && url.pathname.startsWith("/static/")) {
-      const path = `public${url.pathname.replace("/static", "")}`;
-      const ext = path.split(".").pop() ?? "";
-      const mime =
-        ext === "css"
-          ? "text/css"
-          : ext === "js"
-            ? "application/javascript"
-            : "text/plain";
-      return await serveFile(path, mime);
+    // 2. The "everything else in public" Catch-all
+    // This handles /static/, /fav/, /images/, etc.
+    const publicFile = Bun.file(`public${path}`);
+
+    if (await publicFile.exists()) {
+      return new Response(publicFile);
     }
 
-    // Serve favicons and manifest from /fav/
-    if (req.method === "GET" && url.pathname.startsWith("/fav/")) {
-      const path = `public${url.pathname}`;
-      const ext = path.split(".").pop() ?? "";
-      const mime =
-        ext === "png"
-          ? "image/png"
-          : ext === "ico"
-            ? "image/x-icon"
-            : ext === "webmanifest"
-              ? "application/manifest+json"
-              : ext === "svg"
-                ? "image/svg+xml"
-                : "text/plain";
-      return await serveFile(path, mime);
-    }
-
+    // 3. 404 Fallback
     return new Response("Not found", { status: 404 });
+
+
   },
 });

@@ -8,7 +8,7 @@ RUN apt-get update && apt-get install -y \
     lm-sensors \
     && curl -fsSL https://get.docker.com -o get-docker.sh && sh get-docker.sh \
     && rm -f get-docker.sh \
-    && rm -rf /var/lib/apt/lists/*
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 

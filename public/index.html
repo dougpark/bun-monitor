@@ -25,6 +25,11 @@
             /* gray-500 */
         }
 
+        .active {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+            background-color: #4ade80;
+        }
+
         .pulse.active {
             background: #22ff22;
             /* bright green */
@@ -75,9 +80,9 @@
                         </div>
                     </nav> -->
 
-                    <div class="text-right">
+                    <div class="text-right w-full sm:w-auto sm:text-right">
                         <div id="live-clock" class="font-mono text-orange-400 font-semibold">--</div>
-                        <div class="flex items-center gap-3 text-xs text-slate-400 mt-1">
+                        <div class="flex items-center gap-3 text-xs text-slate-400 mt-1 justify-end">
                             <span class="pulse" id="pulse-dot"></span>
                             <span id="status-text">Telemetry: Offline</span>
                         </div>
