@@ -1,7 +1,9 @@
 
 # bun-monitor
 
-AIStation Monitor — Bun-based system telemetry and model dashboard
+AIStation Monitor — Bun-based local LLM and AI Chat system telemetry and model dashboard
+
+bun-monitor is a high-performance, lightweight telemetry dashboard designed for the modern AI workstation. Built with the speed of the Bun runtime and TypeScript, it provides a unified "command center" view of your local LLM environment—streaming real-time NVIDIA GPU metrics, hardware thermals, and Ollama model status directly to a sleek Tailwind-powered UI. Whether you're monitoring a heavy inference load or tracking system health across a Tailscale connection, this tool ensures your Linux AI stack stays cool and responsive.
 
 ## Features
 
