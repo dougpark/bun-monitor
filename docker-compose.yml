@@ -10,7 +10,7 @@ services:
     privileged: true  # Needed for `sensors` command to access hardware info
 
     ports:
-      - "80:4000"
+      - "90:4000"
     volumes:
       # Map the hardware monitor classes from the host
       - /sys:/sys:ro
@@ -18,6 +18,7 @@ services:
 
       - .:/app:rw
       - /var/run/docker.sock:/var/run/docker.sock  # Allows app to run 'docker exec'
+      - /mnt/world:/mnt/world:ro  # Expose nvme1n1p1 mount for disk monitoring
       - /etc/localtime:/etc/localtime:ro
       - /etc/timezone:/etc/timezone:ro
 

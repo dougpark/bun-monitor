@@ -69,10 +69,14 @@ async function updateStats() {
         }
 
         // Disk
-        if (data.disk) {
-            document.getElementById('disk-used').innerText = data.disk.used || '—';
-            document.getElementById('disk-percent').innerText = data.disk.percent || '—';
-            document.getElementById('disk-avail').innerText = `${data.disk.avail || '—'} of ${data.disk.size || '—'}`;
+        if (data.disk && Array.isArray(data.disk)) {
+            data.disk.forEach((d, i) => {
+                const usedEl = document.getElementById(`disk-${i}-used`);
+                if (!usedEl) return;
+                usedEl.innerText = d.used || '—';
+                document.getElementById(`disk-${i}-percent`).innerText = d.percent || '—';
+                document.getElementById(`disk-${i}-avail`).innerText = `${d.avail || '—'} of ${d.size || '—'}`;
+            });
         }
 
         // Ollama table

@@ -2,7 +2,7 @@
 import si from "systeminformation";
 import { $ } from "bun";
 
-const STORAGE_TARGET = "nvme0n1p2";
+const STORAGE_TARGETS = ["nvme0n1p2", "nvme1n1p1"];
 const FAST_INTERVAL = 1000; // ms
 const SLOW_INTERVAL = 2000; // ms
 
@@ -96,36 +96,38 @@ function run_disk_usage() {
   try {
     const out = runCommand(["df", "-h"]);
     const lines = out.split(/\r?\n/);
-    for (const line of lines) {
-      if (line.includes(STORAGE_TARGET)) {
-        const parts = line.split(/\s+/);
-        return {
-          storage: STORAGE_TARGET,
-          size: parts[1] ?? "N/A",
-          used: parts[2] ?? "N/A",
-          avail: parts[3] ?? "N/A",
-          percent: parts[4] ?? "N/A",
-          mount: parts[5] ?? "N/A",
-        };
+    return STORAGE_TARGETS.map(target => {
+      for (const line of lines) {
+        if (line.includes(target)) {
+          const parts = line.split(/\s+/);
+          return {
+            storage: target,
+            size: parts[1] ?? "N/A",
+            used: parts[2] ?? "N/A",
+            avail: parts[3] ?? "N/A",
+            percent: parts[4] ?? "N/A",
+            mount: parts[5] ?? "N/A",
+          };
+        }
       }
-    }
-    return {
-      storage: `${STORAGE_TARGET} not found`,
-      size: "N/A",
-      used: "N/A",
-      avail: "N/A",
-      percent: "0%",
-      mount: "N/A",
-    };
+      return {
+        storage: `${target} not found`,
+        size: "N/A",
+        used: "N/A",
+        avail: "N/A",
+        percent: "0%",
+        mount: "N/A",
+      };
+    });
   } catch (e: any) {
-    return {
-      storage: STORAGE_TARGET,
+    return STORAGE_TARGETS.map(target => ({
+      storage: target,
       size: "Error",
       used: "N/A",
       avail: "N/A",
       percent: "0%",
       mount: "N/A",
-    };
+    }));
   }
 }
 
