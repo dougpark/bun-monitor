@@ -7,6 +7,15 @@ const FAST_INTERVAL = 1000; // ms
 const SLOW_INTERVAL = 2000; // ms
 
 type AnyObject = { [k: string]: any };
+type OllamaModelRow = {
+  name: string;
+  size: string;
+  processor: string;
+  until: string;
+};
+type OllamaPsResult = OllamaModelRow[] | { error: string };
+
+const OLLAMA_API_URL = process.env.OLLAMA_API_URL || "http://localhost:11434";
 
 const cache: AnyObject = {
   fast_data: {},
@@ -51,28 +60,92 @@ function run_nvidia_smi() {
   }
 }
 
-function run_ollama_ps() {
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function formatOllamaBytes(bytes: number): string {
+  const units = ["B", "KB", "MB", "GB", "TB"];
+  let value = bytes;
+  let unitIndex = 0;
+
+  while (value >= 1000 && unitIndex < units.length - 1) {
+    value /= 1000;
+    unitIndex++;
+  }
+
+  return `${value.toFixed(unitIndex === 0 ? 0 : 1)} ${units[unitIndex]}`;
+}
+
+function formatOllamaExpiry(expiresAt: unknown): string {
+  if (typeof expiresAt !== "string") return "N/A";
+
+  const expiresAtMs = Date.parse(expiresAt);
+  if (!Number.isFinite(expiresAtMs)) return "N/A";
+
+  const remainingMs = expiresAtMs - Date.now();
+  if (remainingMs <= 0) return "Expired";
+
+  const minutes = Math.ceil(remainingMs / 60_000);
+  if (minutes < 60) {
+    return `${minutes} minute${minutes === 1 ? "" : "s"} from now`;
+  }
+
+  const hours = Math.ceil(minutes / 60);
+  if (hours < 24) {
+    return `${hours} hour${hours === 1 ? "" : "s"} from now`;
+  }
+
+  const days = Math.ceil(hours / 24);
+  return `${days} day${days === 1 ? "" : "s"} from now`;
+}
+
+async function run_ollama_ps(): Promise<OllamaPsResult> {
   try {
-    const out = runCommand(["docker", "exec", "ollama", "ollama", "ps"]);
-    if (out.startsWith("__ERROR__")) return [];
-    const lines = out.trim().split(/\r?\n/);
-    if (lines.length <= 1) return [];
-    const models: AnyObject[] = [];
-    for (const line of lines.slice(1)) {
-      const parts = line.trim().split(/\s{2,}/);
-      if (parts.length >= 4) {
-        models.push({
-          name: parts[0],
-          id: parts[1],
-          size: parts[2],
-          processor: parts[3],
-          until: parts[5] ?? "N/A",
-        });
-      }
+    const response = await fetch(new URL("/api/ps", OLLAMA_API_URL), {
+      signal: AbortSignal.timeout(3000),
+    });
+    if (!response.ok) {
+      throw new Error(`Ollama API returned HTTP ${response.status}`);
     }
-    return models;
-  } catch (e: any) {
-    return [];
+
+    const payload: unknown = await response.json();
+    if (!isRecord(payload) || !Array.isArray(payload.models)) {
+      throw new Error("Ollama API returned an invalid /api/ps response");
+    }
+
+    return payload.models.map((model, index): OllamaModelRow => {
+      if (!isRecord(model)) {
+        throw new Error(`Ollama API returned an invalid model at index ${index}`);
+      }
+
+      const name =
+        typeof model.name === "string"
+          ? model.name
+          : typeof model.model === "string"
+            ? model.model
+            : "Unknown";
+      const size = typeof model.size === "number" && Number.isFinite(model.size)
+        ? formatOllamaBytes(model.size)
+        : "N/A";
+      const sizeVram =
+        typeof model.size_vram === "number" && Number.isFinite(model.size_vram)
+          ? model.size_vram
+          : 0;
+
+      return {
+        name,
+        size,
+        processor: sizeVram > 0
+          ? `GPU (${formatOllamaBytes(sizeVram)} VRAM)`
+          : "CPU",
+        until: formatOllamaExpiry(model.expires_at),
+      };
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error("Failed to fetch running models from Ollama:", message);
+    return { error: message };
   }
 }
 
@@ -394,14 +467,14 @@ async function get_combined_stats() {
   return { ...cache.fast_data, ...cache.slow_data };
 }
 
-function get_fresh_stats() {
+async function get_fresh_stats() {
   return {
     nvidia: run_nvidia_smi(),
     sys: run_system_info(),
     temps: run_temp_info(),
     server_time: get_server_time(),
     disk: run_disk_usage(),
-    ollama: run_ollama_ps(),
+    ollama: await run_ollama_ps(),
   };
 }
 

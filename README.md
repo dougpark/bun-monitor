@@ -10,7 +10,7 @@ bun-monitor is a high-performance, lightweight telemetry dashboard designed for 
 - Real-time NVIDIA GPU stats (fan, temp, power, memory, utilization)
 - System thermals (CPU, SSD, VRM, pump, fans) via `sensors`
 - Disk usage and load average
-- Ollama model status (via Docker)
+- Ollama model status (via the Ollama `/api/ps` endpoint)
 - Modern web UI (Tailwind CSS)
 - Fast Bun TypeScript backend
 - Docker-ready for easy deployment
@@ -46,6 +46,11 @@ View logs:
 ```bash
 docker compose logs -f
 ```
+
+The Compose setup connects bun-monitor to Ollama's published port using
+`host.docker.internal:11434`. When running bun-monitor directly on the host,
+`OLLAMA_API_URL` defaults to `http://localhost:11434`; set it to the Ollama
+server's base URL if it is running elsewhere.
 
 Run sensors inside the container:
 

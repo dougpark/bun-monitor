@@ -40,6 +40,9 @@ services:
       - PORT=4000
       - BUN_CONFIG_NO_BUFFER=1
       - NODE_ENV=development
+      - OLLAMA_API_URL=http://host.docker.internal:11434
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
     # Run the server
     command: ["bun", "run", "dev"]

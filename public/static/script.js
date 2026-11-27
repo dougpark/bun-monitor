@@ -81,12 +81,45 @@ async function updateStats() {
 
         // Ollama table
         const body = document.getElementById('ollama-body');
-        if (data.ollama && data.ollama.length > 0) {
+        if (data.ollama && !Array.isArray(data.ollama) && data.ollama.error) {
+            body.innerHTML = '';
+            const tr = document.createElement('tr');
+            const td = document.createElement('td');
+            td.colSpan = 4;
+            td.className = 'py-4 text-red-400';
+            td.textContent = `Ollama unavailable: ${data.ollama.error}`;
+            tr.appendChild(td);
+            body.appendChild(tr);
+        } else if (Array.isArray(data.ollama) && data.ollama.length > 0) {
             body.innerHTML = '';
             data.ollama.forEach(m => {
                 const tr = document.createElement('tr');
                 tr.className = 'align-top';
-                tr.innerHTML = `<td class="py-2"><div class="font-medium">${m.name}</div></td><td class="py-2">${m.size || ''}</td><td class="py-2"><span class="px-2 py-1 rounded text-xs" style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.03)">${m.processor}</span></td><td class="py-2">${m.until || ''}</td>`;
+
+                const nameCell = document.createElement('td');
+                nameCell.className = 'py-2';
+                const name = document.createElement('div');
+                name.className = 'font-medium';
+                name.textContent = m.name || 'Unknown';
+                nameCell.appendChild(name);
+
+                const sizeCell = document.createElement('td');
+                sizeCell.className = 'py-2';
+                sizeCell.textContent = m.size || '';
+
+                const processorCell = document.createElement('td');
+                processorCell.className = 'py-2';
+                const processor = document.createElement('span');
+                processor.className = 'px-2 py-1 rounded text-xs';
+                processor.style.cssText = 'background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.03)';
+                processor.textContent = m.processor || '';
+                processorCell.appendChild(processor);
+
+                const untilCell = document.createElement('td');
+                untilCell.className = 'py-2';
+                untilCell.textContent = m.until || '';
+
+                tr.append(nameCell, sizeCell, processorCell, untilCell);
                 body.appendChild(tr);
             });
         } else {
